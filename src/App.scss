@@ -1,0 +1,15 @@
+.App {
+    text-align: center;
+
+    .section {
+        justify-content: center;
+        display: flex;
+        margin-top: 30px;
+
+        div {
+            width: 150px;
+            margin-right: 20px;
+        }
+    }
+
+}

@@ -1,0 +1,67 @@
+.ElevatorsContainer {
+    display: flex;
+    justify-content: center;
+    margin-top: 100px;
+    min-height: 1vh;
+
+    .Elevators {
+        border: 2px solid #000;
+        border-radius: 10px;
+        padding: 20px;
+        position: relative;
+
+        .grid-row {
+            display: grid;
+            grid-template-columns: auto repeat(var(--num-elevators), 1fr);
+            align-items: center;
+            position: relative;
+            height: 100px;
+
+            .floor-number {
+                font-weight: bold;
+                position: absolute;
+                left: -40px;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+
+            .grid-cell {
+                display: grid;
+                grid-template-columns: repeat(var(--num-elevators), 1fr);
+                gap: 10px;
+            }
+
+            .elevator {
+                color: rgb(0, 0, 0);
+                padding: 10px;
+                border-radius: 4px;
+                text-align: center;
+                height: 100px;
+                width: 80px;
+                box-sizing: border-box;
+
+                .elevator-number {
+                    font-weight: bold;
+                    margin-bottom: 5px;
+                }
+
+                &.active {
+                    background-color: #e5f100;
+                    border: 2px solid #000;
+                }
+
+                .arrow {
+                    color: blue;
+
+                    &.up {
+                        color: green;
+                    }
+
+                    &.down {
+                        color: red;
+                    }
+                }
+            }
+        }
+    }
+}

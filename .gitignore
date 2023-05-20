@@ -1,2 +1,39 @@
-*.agdai
-MAlonzo/**
+# Dependency directories
+/node_modules
+/.pnp
+.pnp.js
+
+# Built files
+/build
+/dist
+
+# Cache and logs
+/.cache
+/log
+
+# Environment variables
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Editor files
+.vscode/
+.idea/
+*.iml
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Testing
+/coverage
+
+# Build systems
+.npmrc
+yarn.lock
+package-lock.json
+
+# Miscellaneous
+*.log
+*.swp

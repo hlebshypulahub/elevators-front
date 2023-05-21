@@ -246,7 +246,7 @@ function App() {
                         >
                             {elevators.length > 0 &&
                                 elevators.map((e) => (
-                                    <MenuItem value={e.id}>{e.id}</MenuItem>
+                                    <MenuItem key={e.id} value={e.id}>{e.id}</MenuItem>
                                 ))}
                         </Select>
                     </FormControl>

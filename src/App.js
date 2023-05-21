@@ -2,20 +2,22 @@ import "./App.scss";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import Select from "@mui/material/Select";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Elevators from "./Elevators";
 
 function App() {
-    const [numberOfFloors, setNumberOfFloors] = useState(8);
+    const [intervalId, setIntervalId] = useState(null);
+    const [formNumberOfFloors, setFormNumberOfFloors] = useState(8);
+    const [numberOfFloors, setNumberOfFloors] = useState(formNumberOfFloors);
     const [numberOfElevators, setNumberOfElevators] = useState(3);
     const [callFloor, setCallFloor] = useState(0);
     const [destinationFloor, setDestinationFloor] = useState(0);
-    const [stateUpdated, setStateUpdated] = useState(false);
+    const baseUrl = "http://localhost:8080/elevator-system/api/v1";
     const [elevators, setElevators] = useState([
-        { id: 1, currentFloor: 3, direction: 1, destinationFloors: [5, 7] },
-        { id: 2, currentFloor: 7, direction: -1, destinationFloors: [1] },
-        { id: 3, currentFloor: 1, direction: 0, destinationFloors: [] },
-    ]);
+        // { id: 1, currentFloor: 3, direction: 1, destinationFloors: [5, 7] },
+        // { id: 2, currentFloor: 7, direction: -1, destinationFloors: [1] },
+        // { id: 3, currentFloor: 1, direction: 0, destinationFloors: [] },
+    ]);н
 
     const generateQueryString = (queryParams) => {
         return Object.keys(queryParams)
@@ -28,83 +30,97 @@ function App() {
             .join("&");
     };
 
-    const handlePropsFormSubmit = (e) => {
-        e.preventDefault();
-        setStateUpdated(false);
+    const handlePropsFormSubmit = useCallback(
+        (e) => {
+            e && e.preventDefault();
 
-        const baseUrl = "https://example.com/api";
-        const queryParams = { numberOfFloors, numberOfElevators };
+            const queryParams = {
+                numberOfFloors: formNumberOfFloors,
+                numberOfElevators,
+            };
 
-        const queryString = generateQueryString(queryParams);
+            const queryString = generateQueryString(queryParams);
 
-        const url = `${baseUrl}?${queryString}`;
+            const url = `${baseUrl}/initialize?${queryString}`;
 
-        fetch(url)
-            .then((response) => response.json())
-            .then((data) => {
-                console.log(data);
-                setElevators(data.elevators);
-                setNumberOfFloors(data.setNumberOfFloors);
-                setNumberOfElevators(data.elevators.length);
-            })
-            .catch((error) => {
-                console.error(error);
-            });
-    };
+            fetch(url)
+                .then((response) => response.json())
+                .then((data) => {
+                    console.log(data);
+                    console.log(data.elevators);
+                    setElevators(data.elevators);
+                    setNumberOfFloors(data.numberOfFloors);
+                    setNumberOfElevators(data.elevators.length);
 
-    const handleCallFormSubmit = (e) => {
-        e.preventDefault();
-        setStateUpdated(false);
+                    clearInterval(intervalId);
+                    setIntervalId(null);
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
+        },
+        [formNumberOfFloors, numberOfElevators]
+    );
 
-        const baseUrl = "https://example.com/api";
-        const queryParams = { callFloor, destinationFloor };
+    useEffect(() => {
+        handlePropsFormSubmit();
+    }, []);
 
-        const queryString = generateQueryString(queryParams);
+    const handleCallFormSubmit = useCallback(
+        (e) => {
+            e.preventDefault();
 
-        const url = `${baseUrl}?${queryString}`;
+            const queryParams = { callFloor, destinationFloor };
 
-        fetch(url)
-            .then((response) => response.json())
-            .then((data) => {
-                console.log(data);
-                setElevators(data.elevators);
-                setNumberOfFloors(data.setNumberOfFloors);
-                setNumberOfElevators(data.elevators.length);
-            })
-            .catch((error) => {
-                console.error(error);
-            });
-    };
+            console.log(queryParams);
+
+            const queryString = generateQueryString(queryParams);
+
+            const url = `${baseUrl}/pickup?${queryString}`;
+
+            console.log(url);
+
+            fetch(url)
+                .then((response) => response.json())
+                .then((data) => {
+                    console.log(data);
+                    setElevators(data.elevators);
+                    setNumberOfFloors(data.numberOfFloors);
+                    setNumberOfElevators(data.elevators.length);
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
+        },
+        [callFloor, destinationFloor]
+    );
 
     const simulateStep = () => {
         fetchData();
     };
 
     const startSimulation = () => {
-        setInterval(fetchData, 1000);
+        if (!intervalId) {
+            const id = setInterval(fetchData, 1000);
+            setIntervalId(id);
+        }
     };
 
-    const fetchData = () => {
-        setStateUpdated(false);
-
-        const url = "https://example.com/api";
+    const fetchData = useCallback(() => {
+        const url = baseUrl + "/step";
 
         fetch(url)
             .then((response) => response.json())
             .then((data) => {
                 console.log(data);
                 setElevators(data.elevators);
-                setNumberOfFloors(data.setNumberOfFloors);
+                setNumberOfFloors(data.numberOfFloors);
                 setNumberOfElevators(data.elevators.length);
             })
             .catch((error) => {
                 console.error(error);
             });
-    };
-
-    useEffect(() => {
-        setStateUpdated(true);
-    }, [elevators, numberOfFloors, numberOfElevators]);
+    }, []);
 
     return (
         <div className="App">
@@ -115,8 +131,8 @@ function App() {
                         label="Number of floors"
                         variant="outlined"
                         type="number"
-                        value={numberOfFloors}
-                        onChange={(e) => setNumberOfFloors(e.target.value)}
+                        value={formNumberOfFloors}
+                        onChange={(e) => setFormNumberOfFloors(e.target.value)}
                     />
                     <TextField
                         id="outlined-basic"
@@ -169,7 +185,7 @@ function App() {
                 </div>
             </form>
 
-            {stateUpdated && (
+            {elevators.length > 0 && (
                 <Elevators
                     numberOfFloors={numberOfFloors}
                     elevators={elevators}

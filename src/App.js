@@ -1,6 +1,9 @@
 import "./App.scss";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 import { useState, useEffect, useCallback } from "react";
 import Elevators from "./Elevators";
@@ -11,13 +14,14 @@ function App() {
     const [numberOfFloors, setNumberOfFloors] = useState(formNumberOfFloors);
     const [numberOfElevators, setNumberOfElevators] = useState(3);
     const [callFloor, setCallFloor] = useState(0);
+    const [elevatorIdToRestart, setElevatorIdToRestart] = useState(0);
     const [destinationFloor, setDestinationFloor] = useState(0);
     const baseUrl = "http://localhost:8080/elevator-system/api/v1";
     const [elevators, setElevators] = useState([
         // { id: 1, currentFloor: 3, direction: 1, destinationFloors: [5, 7] },
         // { id: 2, currentFloor: 7, direction: -1, destinationFloors: [1] },
         // { id: 3, currentFloor: 1, direction: 0, destinationFloors: [] },
-    ]);н
+    ]);
 
     const generateQueryString = (queryParams) => {
         return Object.keys(queryParams)
@@ -51,6 +55,9 @@ function App() {
                     setElevators(data.elevators);
                     setNumberOfFloors(data.numberOfFloors);
                     setNumberOfElevators(data.elevators.length);
+                    setElevatorIdToRestart(
+                        data.elevators.length > 0 ? data.elevators[0].id : 0
+                    );
 
                     clearInterval(intervalId);
                     setIntervalId(null);
@@ -87,6 +94,9 @@ function App() {
                     setElevators(data.elevators);
                     setNumberOfFloors(data.numberOfFloors);
                     setNumberOfElevators(data.elevators.length);
+                    setElevatorIdToRestart(
+                        data.elevators.length > 0 ? data.elevators[0].id : 0
+                    );
                 })
                 .catch((error) => {
                     console.error(error);
@@ -116,11 +126,45 @@ function App() {
                 setElevators(data.elevators);
                 setNumberOfFloors(data.numberOfFloors);
                 setNumberOfElevators(data.elevators.length);
+                setElevatorIdToRestart(
+                    data.elevators.length > 0 ? data.elevators[0].id : 0
+                );
             })
             .catch((error) => {
                 console.error(error);
             });
     }, []);
+
+    const handleRestartFormSubmit = useCallback(
+        (e) => {
+            e && e.preventDefault();
+
+            const queryParams = {
+                id: elevatorIdToRestart,
+            };
+
+            const queryString = generateQueryString(queryParams);
+
+            const url = `${baseUrl}/restart?${queryString}`;
+
+            fetch(url)
+                .then((response) => response.json())
+                .then((data) => {
+                    console.log(data);
+                    console.log(data.elevators);
+                    setElevators(data.elevators);
+                    setNumberOfFloors(data.numberOfFloors);
+                    setNumberOfElevators(data.elevators.length);
+                    setElevatorIdToRestart(
+                        data.elevators.length > 0 ? data.elevators[0].id : 0
+                    );
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
+        },
+        [elevatorIdToRestart]
+    );
 
     return (
         <div className="App">
@@ -181,6 +225,33 @@ function App() {
                     />
                     <Button variant="contained" type="submit">
                         Submit
+                    </Button>
+                </div>
+            </form>
+
+            <form onSubmit={handleRestartFormSubmit}>
+                <div className="section">
+                    <FormControl fullWidth>
+                        <InputLabel id="demo-simple-select-label">
+                            Elevator ID
+                        </InputLabel>
+                        <Select
+                            labelId="demo-simple-select-label"
+                            id="demo-simple-select"
+                            value={elevatorIdToRestart}
+                            label="Elevator ID"
+                            onChange={(e) =>
+                                setElevatorIdToRestart(e.target.value)
+                            }
+                        >
+                            {elevators.length > 0 &&
+                                elevators.map((e) => (
+                                    <MenuItem value={e.id}>{e.id}</MenuItem>
+                                ))}
+                        </Select>
+                    </FormControl>
+                    <Button variant="contained" type="submit">
+                        Restart
                     </Button>
                 </div>
             </form>
